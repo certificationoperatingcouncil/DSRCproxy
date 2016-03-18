@@ -1,0 +1,14 @@
+Current
+- Placed files under git
+
+ASN.1 2015-11-19-1
+- changed from TxPower80211 to TxPower (defined per Cohda)
+- change from DataRate80211 to DataRate (defined per Cohda)
+- removed UserPriority from MsgUDPtoWI
+
+ASN.1 2015-11-10.zip
+- added DoNotModifyMask
+
+ASN.1 2015-11-06.zip
+-> matches: DSRC Proxy Interface v050 2015-11-06.docx
+-> original share with Cohda
