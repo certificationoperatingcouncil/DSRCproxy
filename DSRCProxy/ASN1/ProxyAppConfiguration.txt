@@ -1,0 +1,45 @@
+value1 ProxyAppConfiguration ::= {
+  version "2015-11-04",
+  description "Sample configuration file",
+  transmitWi {
+    {
+      radio radio0,
+      mode continuous : {
+        channel 172
+      },
+      listenUDP {
+        port 12172
+      }
+    },
+    {
+      radio radio1,
+      mode alternating : {
+        channel 178,
+        timeSlot slot0
+      },
+      listenUDP {
+        port 12178
+      }
+    },
+    {
+      radio radio1,
+      mode alternating : {
+        channel 174,
+        timeSlot slot1
+      },
+      listenUDP {
+        port 12174
+      }
+    }
+  },
+  transmitUDP {
+    {
+      address "::1",
+      port 20000
+    },
+    {
+      address "127.0.0.1",
+      port 20001
+    }
+  }
+}

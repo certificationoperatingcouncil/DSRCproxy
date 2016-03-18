@@ -1,0 +1,11 @@
+value1 MsgDEVtoUDP ::= {
+  time 1446665271000,
+  frame wiFrame : {
+    channelNumber 172,
+    timeSlot slot0,
+    dataRate 6,
+    recvPwrAnt1 -65,
+    recvPwrAnt2 -66,
+    data '88000000FFFFFFFFFFFF04E548001000FFFFFFFFFFFFFEFF2400AAAA0300000088B55468697320697320746865207061796C6F61640A'H
+  }
+}

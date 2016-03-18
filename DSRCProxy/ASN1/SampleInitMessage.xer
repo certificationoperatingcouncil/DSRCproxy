@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MsgDEVtoUDP>
+  <time>1448002641062000</time>
+  <frame>
+    <expFrame>
+      <exceptionType>
+        <info/>
+      </exceptionType>
+      <module>LLCP_Init</module>
+      <exceptionText>Version: 0.9&#10;Description: Sample configuration file&#10;Receivers: 3&#10;Configs: 3&#10;</exceptionText>
+    </expFrame>
+  </frame>
+</MsgDEVtoUDP>
+
+

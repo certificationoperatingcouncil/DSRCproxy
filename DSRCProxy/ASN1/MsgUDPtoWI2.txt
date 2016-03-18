@@ -1,0 +1,5 @@
+value1 MsgUDPtoWI ::= {
+  dataRate r6Mbps-12BPSK,
+  transmitPowerLevel -128,
+  data '00'H
+}
