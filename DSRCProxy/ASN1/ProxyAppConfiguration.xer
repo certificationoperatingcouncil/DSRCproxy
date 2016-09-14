@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProxyAppConfiguration>
+  <version>2015-11-04</version>
+  <description>Sample configuration file</description>
+  <transmitWi>
+    <WiInstance>
+      <radio>0</radio>
+      <mode>
+        <continuous>
+          <channel>172</channel>
+        </continuous>
+      </mode>
+      <listenUDP>
+        <port>12172</port>
+      </listenUDP>
+    </WiInstance>
+    <WiInstance>
+      <radio>1</radio>
+      <mode>
+        <alternating>
+          <channel>178</channel>
+          <timeSlot>0</timeSlot>
+        </alternating>
+      </mode>
+      <listenUDP>
+        <port>12178</port>
+      </listenUDP>
+    </WiInstance>
+    <WiInstance>
+      <radio>1</radio>
+      <mode>
+        <alternating>
+          <channel>174</channel>
+          <timeSlot>1</timeSlot>
+        </alternating>
+      </mode>
+      <listenUDP>
+        <port>12174</port>
+      </listenUDP>
+    </WiInstance>
+  </transmitWi>
+  <transmitUDP>
+    <TrInstance>
+      <address>::1</address>
+      <port>20000</port>
+    </TrInstance>
+    <TrInstance>
+      <address>127.0.0.1</address>
+      <port>20001</port>
+    </TrInstance>
+  </transmitUDP>
+</ProxyAppConfiguration>

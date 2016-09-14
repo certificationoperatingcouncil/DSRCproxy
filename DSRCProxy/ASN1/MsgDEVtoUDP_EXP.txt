@@ -1,0 +1,9 @@
+value1 MsgDEVtoUDP ::= {
+  time 1446665272000,
+  frame expFrame : {
+    exceptionType warning,
+    exceptionID 1,
+    module "DSRCProxy",
+    exceptionText "DSRC Proxy startup"
+  }
+}

@@ -1,0 +1,29 @@
+<OssGuiProject productVersion="7.1" product="ASN.1 Studio" version="2.0">
+ <Asn1Files>
+  <File>DSRCProxy.asn</File>
+ </Asn1Files>
+ <CompilerSettings/>
+ <EncodingFiles>
+  <File pduName="ProxyAppConfiguration" encRule="ASN.1 Value Notation">ProxyAppConfiguration.txt</File>
+  <File pduName="MsgUDPtoWI" encRule="ASN.1 Value Notation">MsgUDPtoWI.txt</File>
+  <File pduName="MsgDEVtoUDP" encRule="ASN.1 Value Notation">MsgDEVtoUDP_Wi.txt</File>
+  <File pduName="MsgDEVtoUDP" encRule="ASN.1 Value Notation">MsgDEVtoUDP_EXP.txt</File>
+  <File pduName="ProxyAppConfiguration" encRule="XER">ProxyAppConfiguration.xer</File>
+  <File pduName="MsgUDPtoWI" encRule="XER">MsgUDPtoWI1.xer</File>
+  <File pduName="MsgUDPtoWI" format="binary" encRule="OER">MsgUDPtoWI1.oer</File>
+ </EncodingFiles>
+ <Settings>
+  <Setting name="-exer"/>
+  <Setting present="false" name="-noRelaxedMode"/>
+  <Setting name="-oer"/>
+  <Setting name="-root"/>
+  <Setting name="-xer"/>
+  <Setting name="AUTOMATIC_ENCDEC"/>
+  <Setting name="DEBUGPDU"/>
+  <Setting name="OSS_AUTO_ENCODE_WITHOUT_CHECKING_CONSTRAINT"/>
+  <Setting name="OSS_HEXBYTES"/>
+  <Setting name="OSS_PRINT_COMMENTS"/>
+  <Setting name="OSS_PRINT_OFFSET"/>
+  <Setting name="OSS_PRINT_TYPE_INFO"/>
+ </Settings>
+</OssGuiProject>
