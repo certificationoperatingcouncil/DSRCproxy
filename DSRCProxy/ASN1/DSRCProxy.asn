@@ -1,4 +1,4 @@
-DSRCProxy 
+DSRCProxy
 --<OSS.PDU DSRCProxy.MsgUDPtoWI>--
 --<OSS.PDU DSRCProxy.MsgDEVtoUDP>--
 --<OSS.PDU DSRCProxy.ProxyAppConfiguration>--
@@ -7,129 +7,174 @@ DEFINITIONS AUTOMATIC TAGS ::= BEGIN
 IMPORTS
 ;
 
+Version ::= INTEGER{currentVersion(1)} (0..255)
+
+-- Request a packet be transmitted and/or re-tune the radio to a different channel
 MsgUDPtoWI ::= SEQUENCE{
-	dataRate				DataRate80211,
-	transmitPowerLevel		Power80211,
-	doNotModify             DoNotModifyMask OPTIONAL,
-	data					Opaque	-- MAC PDU: MAC header + LLC  + WSM/IP
-									-- UserPriority included in 802.11 header QOS TID 
+    version            Version,                     -- Set to Version as defined above
+    codingRate         CodingRate80211,             -- Transmit coding rate
+    transmitPowerLevel Power80211,                  -- Transmit power
+    channelNumber      ChannelNumber80211 OPTIONAL, -- Optionally re-tune radio
+    doNotModify        DoNotModifyMask    OPTIONAL, -- Optionally midity default packet handling
+    data               Opaque             OPTIONAL  -- MAC PDU: MAC header + LLC  + WSM/IP
+                                                    -- UserPriority included in 802.11 header QOS TID
+                                                    -- Omit to re-tune without transmitting
 }
 
+-- Notification from Proxy
 MsgDEVtoUDP ::= SEQUENCE{
-	time		Time64,			-- 64-bit UTC timestamp with microsecond, GPS syncronized
-	frame		FrameType
+    version Version,  -- Set to Version as defined above
+    time    Time64,   -- 64-bit UTC timestamp with microsecond, GPS syncronized
+    frame   FrameType -- RX notification or notification message
 }
 
 FrameType ::= CHOICE{
-	wiFrame [0] WiFrame,
-	expFrame[1] ExpFrame
+    wiFrame [0] WiFrame, -- RX notification
+    expFrame[1] ExpFrame -- Notification message
 }
 
+-- RX notification
 WiFrame ::= SEQUENCE{
-	channelNumber			ChannelNumber80211,
-	timeSlot				TimeSlot,
-	dataRate				DataRate80211,
-	recvPwrAnt1				Power80211,
-	recvPwrAnt2				Power80211,
-	data					Opaque
+    channelNumber ChannelNumber80211, -- Channel received on
+    timeSlot      TimeSlot,           -- slot received on
+    codingRate    CodingRate80211,    -- coding rate received at
+    recvPwrAnt1   Power80211,         -- RX power for Antenna 1
+    recvPwrAnt2   Power80211,         -- RX power for Antenna 2
+    data          Opaque              -- Packet, see MsgUDPtoWI
 }
 
+-- Notification message
 ExpFrame ::= SEQUENCE{
-	exceptionType		ExceptionType,
-	exceptionID			ExceptionId OPTIONAL,
-	module				Module OPTIONAL,	
-	exceptionText		ExceptionText OPTIONAL
+    exceptionType ExceptionType,
+    exceptionID   ExceptionId   OPTIONAL,
+    module        Module        OPTIONAL,
+    exceptionText ExceptionText OPTIONAL
 }
 
-/* 
-		configuration file 
-*/
+-- configuration options as read from file or received via UDP
 ProxyAppConfiguration ::= SEQUENCE{
-	version			UTF8String (SIZE(0..255)), 	-- configuration file date/version
-	description		UTF8String (SIZE(0..65535)), -- describes configuration, human readable
-	transmitWi		SEQUENCE OF WiInstance,
-	transmitUDP		SEQUENCE OF TrInstance
+    version     Version,                     -- Set to Version as defined above
+    revision    UTF8String (SIZE(0..255)),   -- configuration file date/version
+    description UTF8String (SIZE(0..65535)), -- describes configuration, human readable
+    transmitWi  SEQUENCE OF WiInstance,      -- Radio configurations
+    transmitUDP SEQUENCE OF TrInstance,      -- RX notification/message receivers
+    configUDP   UDPPort OPTIONAL             -- Reconfiguration port
 }
 
+-- Radio configuration
 WiInstance ::= SEQUENCE{
-	radio			RadioInterface,
-	mode			ChannelMode,
-	antenna			Antenna OPTIONAL,
-	listenUDP		ListenUDP
+    radio       RadioInterface,
+    mode        ChannelMode,
+    filter      FilterTable            OPTIONAL, -- optional firewall
+    antenna     Antenna                OPTIONAL, -- optional antenna
+    listenUDP   ListenUDP,                       -- Port to listen on for transmit/re-tuning requests
+    transmitUDP SEQUENCE OF TrInstance OPTIONAL  -- in addition to the global transmitUDP sequence
 }
 
 TrInstance ::= SEQUENCE{
-	address		IPAddress,
-	port		UDPPort
+    address IPAddress, -- Receiver address IPv6, IPv6 or hostname)
+    port    UDPPort    -- Receiver port
 }
 
-ListenUDP	::= SEQUENCE{
-	port	UDPPort
+ListenUDP ::= SEQUENCE{
+    port UDPPort -- Port to listen on for reconfiguration requests
 }
 
 RadioInterface ::= INTEGER{
-	radio0 (0),
-	radio1 (1),
-	radio2 (2),
-	radio3 (3)
+    radio0 (0),
+    radio1 (1),
+    radio2 (2),
+    radio3 (3)
 } (0..16)
 
 ChannelMode ::= CHOICE{
-	alternating [0] AlternatingMode,
-	continuous [1] ContinuousMode
+    alternating [0] AlternatingMode,
+    continuous  [1] ContinuousMode
 }
 
 AlternatingMode ::= SEQUENCE{
-	channel		ChannelNumber80211,	
-	timeSlot	TimeSlot1
+    channel  ChannelNumber80211,
+    timeSlot TimeSlot1
 }
 
 ContinuousMode ::= SEQUENCE{
-	channel		ChannelNumber80211
+    channel ChannelNumber80211
 }
 
-Antenna ::= INTEGER{
-	antenna1 (1),
-	antenna2 (2)
+Antenna ::= BIT STRING{
+    antenna1 (0),
+    antenna2 (1)
 }
 
-/*
-	Common Datatypes
-*/
+FilterControlBits ::= INTEGER{
+    responseEnable (1),  -- Send ACK when unicast packet matching this filter is received
+    enableCtrl     (2),  -- forward 'low-level' packets up the stack (ACK, RTS, CTS)
+    enableBadFCS   (4),  -- forward packets with FrameCheckSequence (CRC32) mismatch
+                -- (8), internal use
+    duplicate     (16)   -- forward duplicate packets
+}
+
+Filter ::= SEQUENCE{
+    mac         Opaque (SIZE(6)), -- MAC address
+    mask        Opaque (SIZE(6)), -- MAC address mask
+    controlBits FilterControlBits
+}
+
+FilterTable ::= SEQUENCE (SIZE(0..8)) OF Filter
+
+-- Common Datatypes
 
 UDPPort ::= INTEGER(0..65535)
 
 IPAddress ::= UTF8String(SIZE(2..255)) -- IPv4, IPv6 or hostname
 
 TimeSlot ::= INTEGER {
-	slot0 (0),
-	slot1 (1),
+    slot0 (0),
+    slot1 (1),
     slotEither (2)
 } (0..255)
 
-TimeSlot1 ::= INTEGER {	
-	slot0 (0),
-	slot1 (1),
+TimeSlot1 ::= INTEGER {
+    slot0 (0),
+    slot1 (1),
     both (2)
 } (0..255)
 
 UserPriority ::= INTEGER(0..7)
 
-DataRate80211 ::= ENUMERATED {
-	-- see Table 9-5—Non-HT reference rate 802.11 - 2012 pp864
-	r6Mbps-12BPSK (1),	-- (0xB)
-	r9Mbps-34BPSK, -- (0xF)
-	r12Mbps-12QPSK, -- (0xA)
-	r18Mbps-34QPSK, -- (0xE)
-	r24Mbps-1216QAM, -- (0x9)
-	r36Mbps-3416QAM, -- (0xD)
-	r48Mbps-1264QAM, -- 
-	r48Mbps-2364QAM, -- (0x8)
-	r54Mbps-3464QAM, -- (0xC)
-	r54Mbps-5664QAM -- 
+CodingRate80211 ::= ENUMERATED {
+	-- see Table 18-4 Modulation Dependent parameters - IEEE80211 2012 pp1590
+	r12BPSK,	-- 3Mbps@10MHz  (0xB)
+	r34BPSK, 	-- 4.5Mbps@10MHz(0xF)
+	r12QPSK, 	-- 6Mbps@10MHz  (0xA)
+	r34QPSK, 	-- 9Mbps@10MHz  (0xE)
+	r12QAM16, 	-- 12Mbps@10MHz (0x9)
+	r34QAM16, 	-- 18Mbps@10MHz (0xD)
+	r23QAM64, 	-- 24Mbps@10MHz (0x8)
+	r34QAM64 	-- 27Mbps@10MHz (0xC)
 }
 
-Power80211 ::= INTEGER(-128..127)		
+ExceptionIds ::= ENUMERATED {
+    -- startup/shutdown notifications
+    warning-DSRC-Proxy-startup,
+    warning-DSRC-Proxy-shutdown,
+    -- transmit request errors
+    -- Error-WSMP-Tx-rejected-Max-length-exceeded,
+    error-WSMP-Tx-rejected-Invalid-CodingRate,
+    error-WSMP-Tx-rejected-Invalid-MSC,
+    error-WSMP-Tx-rejected-Invalid-DNM,
+    error-WSMP-Tx-rejected-Version-Mismatch,
+    -- configuration file errors
+    error-Invalid-configuration-Invalid-Slot,
+    error-Invalid-configuration-Invalid-Radio,
+    error-Invalid-configuration-Invalid-Mode,
+    error-Invalid-configuration-Timeslot-Overallocated,
+    error-Invalid-configuration-MKx-Config-Error,
+    -- generic out-of-memory error
+    om
+}
+
+Power80211 ::= INTEGER(-128..127)
 -- dBm units
 
 ChannelNumber80211 ::= INTEGER (0..255)
@@ -137,9 +182,9 @@ ChannelNumber80211 ::= INTEGER (0..255)
 Opaque ::= OCTET STRING
 
 ExceptionType	::= ENUMERATED{
-	info,		-- all info messages
-	warning,	-- all warnings
-	error		-- all errors
+    info,    -- all info messages
+    warning, -- all warnings
+    error    -- all errors
 }
 
 Module ::= UTF8String (SIZE(0..255))
@@ -151,14 +196,15 @@ ExceptionId ::= INTEGER (0..65535)
 ExceptionText ::= UTF8String (SIZE(0..1200))
 -- short description of exception
 
-Time64 ::= INTEGER (0..18446744073709551615) 
+Time64 ::= INTEGER (0..9223372036854775807)
 -- 64-bit integer providing system time expressed as the number of microseconds
+-- due to ASN.1 limitation in OSS, the highest bit is set to 0
 
-DoNotModifyMask ::= INTEGER{ 
-    seqCtrl     (1),  -- 
-    durationId  (2),  -- IEEE80211QoSHeader.DurationId
-    ackPolicy   (4),  -- IEEE80211QoSHeader.QoSControl.AckPolicy
-    retry       (8)   -- etc....
+DoNotModifyMask ::= INTEGER{
+    seqCtrl    (1), --
+    durationId (2), -- IEEE80211QoSHeader.DurationId
+    ackPolicy  (4), -- IEEE80211QoSHeader.QoSControl.AckPolicy
+    retry      (8)  -- etc....
 }
 
 END
